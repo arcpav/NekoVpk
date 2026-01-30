@@ -157,7 +157,7 @@
                 <ContextMenu>
                   <MenuItem Header="打开目录"
                             Click="AddonList_Menu_LocateFile"
-                            IsVisible="{Binding #AddonList.SelectedItem.IsInstalled}"/>
+                            IsVisible="{Binding !DataContext.IsOnlineMode, ElementName=RootView}"/>
                   <MenuItem Header="删除模组"
                             Click="AddonList_Menu_Delete"
                             IsVisible="{Binding !DataContext.IsOnlineMode, ElementName=RootView}"/>
@@ -166,7 +166,7 @@
                             IsVisible="{Binding DataContext.IsOnlineMode, ElementName=RootView}"/>
                   <MenuItem Header="下载模组"
                             Click="AddonList_Menu_Download"
-                            IsVisible="{Binding !#AddonList.SelectedItem.IsInstalled}"/>
+                            IsVisible="{Binding DataContext.IsOnlineMode, ElementName=RootView}"/>
                 </ContextMenu>
               </DataGrid.ContextMenu>
               <DataGrid.Columns>

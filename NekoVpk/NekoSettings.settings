@@ -8,5 +8,29 @@
     <Setting Name="CompressionLevel" Type="System.Int16" Scope="User">
       <Value Profile="(Default)">3</Value>
     </Setting>
+    <Setting Name="IgnoreVpkErrors" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="BackgroundImagePath" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="BackgroundBrightness" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">100</Value>
+    </Setting>
+    <Setting Name="BackgroundStretch" Type="System.String" Scope="User">
+      <Value Profile="(Default)">UniformToFill</Value>
+    </Setting>
+    <Setting Name="SteamApiKey" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="ClearSearchAfterDownload" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="UserFont" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Microsoft YaHei UI</Value>
+    </Setting>
+    <Setting Name="UserFontSize" Type="System.Double" Scope="User">
+      <Value Profile="(Default)">14</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

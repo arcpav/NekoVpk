@@ -4,45 +4,146 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="600"
         x:Class="NekoVpk.Views.SettingsWindow"
-		xmlns:vm="clr-namespace:NekoVpk.ViewModels"
-		x:DataType="vm:Settings"
+        xmlns:vm="clr-namespace:NekoVpk.ViewModels"
+        x:DataType="vm:Settings"
         Title="NekoSettings"
-		Width="700" Height="600"
-		WindowStartupLocation="CenterScreen"
-		TransparencyLevelHint="Mica,AcrylicBlur,Blur,None"
-		Icon="/Assets/NekoVpk.ico">
-	<Design.DataContext>
-		<!-- This only sets the DataContext for the previewer in an IDE,
-         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-		<vm:Settings />
-	</Design.DataContext>
-	<StackPanel Margin="16">
-		<Grid ColumnDefinitions="auto,auto" RowDefinitions="auto,auto" VerticalAlignment="Center">
-			<Grid.Styles>
-				<Style Selector="StackPanel">
-					<Setter Property="Orientation" Value="Horizontal" />
-					<Setter Property="VerticalAlignment" Value="Center" />
-					<Setter Property="Margin" Value="0 0 0 18" />
-				</Style>
-				<Style Selector="Label">
-					<Setter Property="VerticalAlignment" Value="Center" />
-					<Setter Property="Margin" Value="6" />
-				</Style>
-			</Grid.Styles>
-			<StackPanel>
-				<TextBox Name="GameDir" Text="{Binding GameDir}" InnerLeftContent="GameDir" TextWrapping="NoWrap" Width="600" Height="32" IsUndoEnabled="True"></TextBox>
-				<Button Classes="Tertiary" Height="32" Click="Browser_Click">...</Button>
-			</StackPanel>
-			<StackPanel Grid.Row="1">
-				<Label>Compression level</Label>
-				<ComboBox Name="ComboBox_CompressionLevel" Width="100" SelectedIndex="{Binding CompressionLevel}">
-					<ComboBoxItem>Fast</ComboBoxItem>
-					<ComboBoxItem>Low</ComboBoxItem>
-					<ComboBoxItem>Normal</ComboBoxItem>
-					<ComboBoxItem>High</ComboBoxItem>
-					<ComboBoxItem>Ultra</ComboBoxItem>
-				</ComboBox>
-			</StackPanel>
-		</Grid>
-	</StackPanel>
+        Width="700" Height="600"
+        WindowStartupLocation="CenterScreen"
+        TransparencyLevelHint="Mica,AcrylicBlur,Blur,None"
+        Background="{DynamicResource SystemRegionBrush}"
+        Icon="/Assets/NekoVpk.ico">
+    <Design.DataContext>
+        <vm:Settings />
+    </Design.DataContext>
+    <ScrollViewer>
+        <StackPanel Margin="16" Spacing="20">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBox Name="GameDir" Text="{Binding GameDir}" InnerLeftContent="GameDir" 
+                         TextWrapping="NoWrap" Width="600" Height="32" IsUndoEnabled="True"/>
+                <Button Classes="Tertiary" Height="32" Click="Browser_Click" Margin="5,0,0,0">...</Button>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Spacing="5">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBox Text="{Binding SteamApiKey}" 
+                             InnerLeftContent="Steam Web API Key"
+                             PasswordChar="{Binding ApiKeyPasswordChar}"
+                             Width="600" Height="32">
+                        <TextBox.InnerRightContent>
+                            <ToggleButton IsChecked="{Binding IsApiKeyVisible}"
+                                          Background="Transparent"
+                                          BorderThickness="0"
+                                          Padding="4"
+                                          Margin="0,0,5,0"
+                                          Cursor="Hand">
+                                <ToggleButton.Content>
+                                    <TextBlock Text="👁" FontSize="16" VerticalAlignment="Center"/>
+                                </ToggleButton.Content>
+                            </ToggleButton>
+                        </TextBox.InnerRightContent>
+                    </TextBox>
+
+                    <Button Classes="Tertiary" Height="32" Margin="5,0,0,0"
+                            ToolTip.Tip="点击跳转申请页面"
+                            Click="OpenSteamApiKey_Click">
+                        <TextBlock Text="?" FontWeight="Bold"/>
+                    </Button>
+                </StackPanel>
+                <TextBlock Text="*🌐要使用在线搜索功能必须填写此项 | This is required for the online search function" 
+                           Foreground="#FF5555" FontSize="11" Margin="0,2,0,0"/>
+            </StackPanel>
+
+            <Separator Height="1" Background="{DynamicResource SystemControlForegroundBaseLowBrush}" Margin="0,5"/>
+
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <Label VerticalAlignment="Center" Margin="0,0,10,0">Compression level</Label>
+                <ComboBox Name="ComboBox_CompressionLevel" Width="120" SelectedIndex="{Binding CompressionLevel}">
+                    <ComboBoxItem>Fast</ComboBoxItem>
+                    <ComboBoxItem>Low</ComboBoxItem>
+                    <ComboBoxItem>Normal</ComboBoxItem>
+                    <ComboBoxItem>High</ComboBoxItem>
+                    <ComboBoxItem>Ultra</ComboBoxItem>
+                </ComboBox>
+            </StackPanel>
+            <CheckBox IsChecked="{Binding IgnoreVpkErrors}">
+                忽略 VPK 读取错误 (Ignore VPK Errors)
+            </CheckBox>
+
+            <CheckBox IsChecked="{Binding ClearSearchAfterDownload}">
+                下载完成后清空搜索框 (Clear Searchbox After Download)
+            </CheckBox>
+            <Separator Height="1" Background="{DynamicResource SystemControlForegroundBaseLowBrush}" Margin="0,10"/>
+            <StackPanel Spacing="10">
+                <TextBlock Text="界面字体与大小 (Font &amp; Size)" FontWeight="Bold"/>
+                <Grid ColumnDefinitions="*, 10, Auto">
+                    <ComboBox Grid.Column="0"
+                              ItemsSource="{Binding InstalledFonts}" 
+                              SelectedItem="{Binding UserFont}"
+                              HorizontalAlignment="Stretch"
+                              MaxDropDownHeight="300"
+                              PlaceholderText="选择字体...">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" FontFamily="{Binding}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <NumericUpDown Grid.Column="2"
+                                   Value="{Binding UserFontSize}"
+                                   Minimum="10"
+                                   Maximum="36"
+                                   Increment="1"
+                                   Width="120"
+                                   FormatString="0 px"/>
+                </Grid>
+            </StackPanel>
+            <StackPanel Spacing="10">
+                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <TextBlock Text="更换背景 (关闭设置后刷新) - 填充方式:" 
+                               FontWeight="Bold" 
+                               VerticalAlignment="Center"/>
+                    <ComboBox SelectedIndex="{Binding BackgroundStretchIndex}" 
+                              MinWidth="120"
+                              VerticalAlignment="Center">
+                        <ComboBoxItem Content="UniformToFill (默认)">
+                            <ToolTip.Tip>
+                                <TextBlock Text="不会变形 没有黑边 但图片边缘会被裁剪"/>
+                            </ToolTip.Tip>
+                        </ComboBoxItem>
+
+                        <ComboBoxItem Content="Uniform">
+                            <ToolTip.Tip>
+                                <TextBlock Text="不会变形 完整显示 但周围会有黑边"/>
+                            </ToolTip.Tip>
+                        </ComboBoxItem>
+                        <ComboBoxItem Content="Fill">
+                            <ToolTip.Tip>
+                                <TextBlock Text="强制填满屏幕 图片会变形"/>
+                            </ToolTip.Tip>
+                        </ComboBoxItem>
+                        <ComboBoxItem Content="None">
+                            <ToolTip.Tip>
+                                <TextBlock Text="原始大小 不进行缩放"/>
+                            </ToolTip.Tip>
+                        </ComboBoxItem>
+                    </ComboBox>
+                </StackPanel>
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBox Text="{Binding BackgroundImagePath}" Watermark="推荐使用分辨率接近窗口的图片" IsReadOnly="True"/>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="5,0,0,0">
+                        <Button Content="文件" ToolTip.Tip="选择图片" 
+                                Command="{Binding $parent[Window].SelectBackgroundImage}"/>
+                        <Button Content="文件夹" ToolTip.Tip="随机文件夹里的图片" 
+                                Command="{Binding $parent[Window].SelectBackgroundFolder}" Margin="5,0,0,0"/>
+                        <Button Content="清除" Command="{Binding ClearBackground}" Margin="5,0,0,0"/>
+                    </StackPanel>
+                </Grid>
+                <TextBlock Text="{Binding BackgroundBrightness, StringFormat='背景亮度: {0:0}%'}" Margin="0,5,0,0"/>
+                <Slider Value="{Binding BackgroundBrightness}" 
+                        Minimum="0" 
+                        Maximum="100" 
+                        Margin="0,0,0,10"
+                        IsEnabled="{Binding BackgroundImagePath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
 </Window>

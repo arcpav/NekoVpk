@@ -11,7 +11,9 @@
 		Width="1366" Height="768"
 		WindowStartupLocation="CenterScreen"
 		TransparencyLevelHint="Mica,AcrylicBlur,Blur,None"
-		xmlns:lang="clr-namespace:NekoVpk.Lang">
+		xmlns:lang="clr-namespace:NekoVpk.Lang"
+        FontFamily="{Binding UserFont}"
+        FontSize="{Binding UserFontSize}">
 	    <Panel>
 		    <Panel.Background>
 			    <ImageBrush Source="/Assets/NekoVpk.ico"

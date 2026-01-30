@@ -2,6 +2,8 @@ using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using System.IO;
 using System;
+using System.Linq;
+using System.Diagnostics;
 
 namespace NekoVpk.Views
 {
@@ -11,6 +13,45 @@ namespace NekoVpk.Views
         {
             InitializeComponent();
             //ComboBox_CompressionLevel.ItemsSource = Enum.GetValues(typeof(SevenZip.CompressionLevel));
+        }
+
+        public async void SelectBackgroundImage()
+        {
+            var storage = this.StorageProvider;
+            var result = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "选择背景",
+                FileTypeFilter = new[] { FilePickerFileTypes.ImageAll },
+                AllowMultiple = false
+            });
+
+            if (result.Count > 0)
+            {
+                string path = result[0].Path.LocalPath;
+                if (DataContext is ViewModels.Settings vm)
+                {
+                    vm.BackgroundImagePath = path;
+                }
+            }
+        }
+
+        public async void SelectBackgroundFolder()
+        {
+            var storage = this.StorageProvider;
+            var result = await storage.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            {
+                Title = "选择背景文件夹",
+                AllowMultiple = false
+            });
+
+            if (result.Count > 0)
+            {
+                string path = result[0].Path.LocalPath;
+                if (DataContext is ViewModels.Settings vm)
+                {
+                    vm.BackgroundImagePath = path;
+                }
+            }
         }
 
         private async void Browser_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -47,6 +88,23 @@ namespace NekoVpk.Views
                     }
                 }
                 GameDir.Text = dirInfo.FullName;
+            }
+        }
+
+        private void OpenSteamApiKey_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        {
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "https://steamcommunity.com/dev/apikey",
+                    UseShellExecute = true
+                };
+                Process.Start(psi);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"打开申请页面失败: {ex.Message}");
             }
         }
     }

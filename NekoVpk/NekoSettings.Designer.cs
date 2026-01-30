@@ -12,7 +12,7 @@ namespace NekoVpk {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.9.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.14.0.0")]
     internal sealed partial class NekoSettings : global::System.Configuration.ApplicationSettingsBase {
         
         private static NekoSettings defaultInstance = ((NekoSettings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new NekoSettings())));
@@ -44,6 +44,102 @@ namespace NekoVpk {
             }
             set {
                 this["CompressionLevel"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool IgnoreVpkErrors {
+            get {
+                return ((bool)(this["IgnoreVpkErrors"]));
+            }
+            set {
+                this["IgnoreVpkErrors"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string BackgroundImagePath {
+            get {
+                return ((string)(this["BackgroundImagePath"]));
+            }
+            set {
+                this["BackgroundImagePath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
+        public double BackgroundBrightness {
+            get {
+                return ((double)(this["BackgroundBrightness"]));
+            }
+            set {
+                this["BackgroundBrightness"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("UniformToFill")]
+        public string BackgroundStretch {
+            get {
+                return ((string)(this["BackgroundStretch"]));
+            }
+            set {
+                this["BackgroundStretch"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string SteamApiKey {
+            get {
+                return ((string)(this["SteamApiKey"]));
+            }
+            set {
+                this["SteamApiKey"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ClearSearchAfterDownload {
+            get {
+                return ((bool)(this["ClearSearchAfterDownload"]));
+            }
+            set {
+                this["ClearSearchAfterDownload"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Microsoft YaHei UI")]
+        public string UserFont {
+            get {
+                return ((string)(this["UserFont"]));
+            }
+            set {
+                this["UserFont"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("14")]
+        public double UserFontSize {
+            get {
+                return ((double)(this["UserFontSize"]));
+            }
+            set {
+                this["UserFontSize"] = value;
             }
         }
     }

@@ -3,15 +3,16 @@
         "color": "Red",
         "translate": {},
       "files": [
-        "materials/vgui/s_panel_namvet.vtf",
-        "materials/vgui/s_panel_namvet_incap.vtf",
-        "materials/vgui/select_bill.vtf",
-        "materials/vgui/s_panel_namvet.vmt",
-        "materials/vgui/s_panel_namvet_incap.vmt",
-        "materials/vgui/select_bill.vmt",
+        "materials/vgui/s_panel_namvet.*",
+        "materials/vgui/s_panel_namvet_incap.*",
+        "materials/vgui/select_bill.*",
         "models/survivors/survivor_namvet.*",
         "models/weapons/arms/v_arms_bill.*",
-        "models/survivors/namvet/namvet_deathpose.*"
+        "models/survivors/namvet/namvet_deathpose.*",
+
+        "models/survivors/bill*.*",
+        "models/weapons/arms/bill*.*",
+        "models/survivors/namvet/bill*.*"
       ],
       "type": ["Survivor"]
     },
@@ -19,14 +20,14 @@
         "color": "Pink",
         "translate": {},
         "files": [
-            "materials/vgui/s_panel_coach.vtf",
-            "materials/vgui/s_panel_coach_incap.vtf",
-            "materials/vgui/s_panel_lobby_coach.vtf",
-            "materials/vgui/s_panel_coach.vmt",
-            "materials/vgui/s_panel_coach_incap.vmt",
-            "materials/vgui/s_panel_lobby_coach.vmt",
+            "materials/vgui/s_panel_coach.*",
+            "materials/vgui/s_panel_coach_incap.*",
+            "materials/vgui/s_panel_lobby_coach.*",
             "models/survivors/survivor_coach.*",
-            "models/weapons/arms/v_arms_coach_new.*"
+            "models/weapons/arms/v_arms_coach_new.*",
+
+            "models/survivors/coach*.*",
+            "models/weapons/arms/coach*.*"
         ],
         "type": ["Survivor"]
     },
@@ -34,14 +35,14 @@
         "color": "Purple",
         "translate": {},
         "files": [
-            "materials/vgui/s_panel_mechanic.vtf",
-            "materials/vgui/s_panel_mechanic_incap.vtf",
-            "materials/vgui/s_panel_lobby_mechanic.vtf",
-            "materials/vgui/s_panel_mechanic.vmt",
-            "materials/vgui/s_panel_mechanic_incap.vmt",
-            "materials/vgui/s_panel_lobby_mechanic.vmt",
+            "materials/vgui/s_panel_mechanic.*",
+            "materials/vgui/s_panel_mechanic_incap.*",
+            "materials/vgui/s_panel_lobby_mechanic.*",
             "models/survivors/survivor_mechanic.*",
-            "models/weapons/arms/v_arms_mechanic_new.*"
+            "models/weapons/arms/v_arms_mechanic_new.*",
+
+            "models/survivors/ellis*.*",
+            "models/weapons/arms/ellis*.*"
         ],
         "type": ["Survivor"]
     },
@@ -49,15 +50,15 @@
         "color": "Violet",
         "translate": {},
         "files": [
-            "materials/vgui/s_panel_biker.vtf",
-            "materials/vgui/s_panel_biker_incap.vtf",
-            "materials/vgui/select_francis.vtf",
-            "materials/vgui/s_panel_biker.vmt",
-            "materials/vgui/s_panel_biker_incap.vmt",
-            "materials/vgui/select_francis.vmt",
+            "materials/vgui/s_panel_biker.*",
+            "materials/vgui/s_panel_biker_incap.*",
+            "materials/vgui/select_francis.*",
             "models/survivors/survivor_biker.*",
             "models/weapons/arms/v_arms_francis.*",
-            "models/survivors/survivor_biker_light.*"
+            "models/survivors/survivor_biker_light.*",
+
+            "models/survivors/francis*.*",
+            "models/weapons/arms/francis*.*"
         ],
         "type": ["Survivor"]
     },
@@ -65,14 +66,14 @@
         "color": "Indigo",
         "translate": {},
         "files": [
-            "materials/vgui/s_panel_manager.vtf",
-            "materials/vgui/s_panel_manager_incap.vtf",
-            "materials/vgui/select_louis.vtf",
-            "materials/vgui/s_panel_manager.vmt",
-            "materials/vgui/s_panel_manager_incap.vmt",
-            "materials/vgui/select_louis.vmt",
+            "materials/vgui/s_panel_manager.*",
+            "materials/vgui/s_panel_manager_incap.*",
+            "materials/vgui/select_louis.*",
             "models/survivors/survivor_manager.*",
-            "models/weapons/arms/v_arms_louis.*"
+            "models/weapons/arms/v_arms_louis.*",
+
+            "models/survivors/louis*.*",
+            "models/weapons/arms/louis*.*"
         ],
         "type": ["Survivor"]
     },
@@ -80,14 +81,14 @@
         "color": "Blue",
         "translate": {},
         "files": [
-            "materials/vgui/s_panel_gambler.vtf",
-            "materials/vgui/s_panel_gambler_incap.vtf",
-            "materials/vgui/s_panel_lobby_gambler.vtf",
-            "materials/vgui/s_panel_gambler.vmt",
-            "materials/vgui/s_panel_gambler_incap.vmt",
-            "materials/vgui/s_panel_lobby_gambler.vmt",
+            "materials/vgui/s_panel_gambler.*",
+            "materials/vgui/s_panel_gambler_incap.*",
+            "materials/vgui/s_panel_lobby_gambler.*",
             "models/survivors/survivor_gambler.*",
-            "models/weapons/arms/v_arms_gambler_new.*"
+            "models/weapons/arms/v_arms_gambler_new.*",
+
+            "models/survivors/nick*.*",
+            "models/weapons/arms/nick*.*"
         ],
         "type": ["Survivor"]
     },
@@ -95,14 +96,14 @@
         "color": "LightBlue",
         "translate": {},
         "files": [
-            "materials/vgui/s_panel_producer.vtf",
-            "materials/vgui/s_panel_producer_incap.vtf",
-            "materials/vgui/s_panel_lobby_producer.vtf",
-            "materials/vgui/s_panel_producer.vmt",
-            "materials/vgui/s_panel_producer_incap.vmt",
-            "materials/vgui/s_panel_lobby_producer.vmt",
+            "materials/vgui/s_panel_producer.*",
+            "materials/vgui/s_panel_producer_incap.*",
+            "materials/vgui/s_panel_lobby_producer.*",
             "models/survivors/survivor_producer.*",
-            "models/weapons/arms/v_arms_producer_new.*"
+            "models/weapons/arms/v_arms_producer_new.*",
+
+            "models/survivors/rochelle*.*",
+            "models/weapons/arms/rochelle*.*"
         ],
         "type": ["Survivor"]
     },
@@ -110,19 +111,26 @@
         "color": "Cyan",
         "translate": {},
         "files": [
-            "materials/vgui/s_panel_teenangst.vtf",
-            "materials/vgui/s_panel_teenangst_incap.vtf",
-            "materials/vgui/select_zoey.vtf",
-            "materials/vgui/s_panel_teenangst.vmt",
-            "materials/vgui/s_panel_teenangst_incap.vmt",
-            "materials/vgui/select_zoey.vmt",
+            "materials/vgui/s_panel_teenangst.*",
+            "materials/vgui/s_panel_teenangst_incap.*",
+            "materials/vgui/select_zoey.*",
             "models/survivors/survivor_teenangst.*",
             "models/weapons/arms/v_arms_zoey.*",
-            "models/survivors/survivor_teenangst_light.*"
+            "models/survivors/survivor_teenangst_light.*",
+
+            "models/survivors/zoey*.*",
+            "models/weapons/arms/zoey*.*"
+        ],
+        "type": ["Survivor"]
+    },
+    "L4N-Survivor": {
+        "color": "Grey",
+        "translate": {},
+        "files": [
+            "models/l4n/s/*/*.*"
         ],
         "type": ["Survivor"]
     }
-    
     
     ,"Map": {
         "color": "Teal",

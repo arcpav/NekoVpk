@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NekoVpk.Desktop", "NekoVpk.Desktop.csproj", "{320788D5-309F-AC1F-E385-7EC8C890E363}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{320788D5-309F-AC1F-E385-7EC8C890E363}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{320788D5-309F-AC1F-E385-7EC8C890E363}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{320788D5-309F-AC1F-E385-7EC8C890E363}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{320788D5-309F-AC1F-E385-7EC8C890E363}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0A8020D8-4427-4209-89A1-FFB720276F9D}
+	EndGlobalSection
+EndGlobal

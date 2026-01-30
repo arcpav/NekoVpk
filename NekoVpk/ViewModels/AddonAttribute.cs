@@ -15,8 +15,6 @@ namespace NekoVpk.ViewModels
         Local
     }
 
-
-
     public class AddonAttribute : ViewModelBase
     {
 
@@ -39,13 +37,28 @@ namespace NekoVpk.ViewModels
                 }
             }
         }
+
+        private bool _isInstalled;
+        public bool IsInstalled
+        {
+            get => _isInstalled;
+            set => this.RaiseAndSetIfChanged(ref _isInstalled, value);
+        }
+
         public string FileName { get; }
         public AddonSource Source { get; }
 
         public string Title { get => AddonInfo.Title ?? FileName; }
 
         public string? Version { get => AddonInfo.Version; }
-        public string? Author { get => AddonInfo.Author; }
+        
+        public string? Author 
+        { 
+            get => AddonInfo.Author; 
+        }
+
+        public string? AddonInfo_Author => AddonInfo.Author;
+
         public string? Description { get => AddonInfo.Description; }
         public string? Url
         {
@@ -58,6 +71,8 @@ namespace NekoVpk.ViewModels
                 return AddonInfo.Url0;
             }
         }
+
+        public string? PreviewUrl => AddonInfo.Url0;
 
         public string? WorkShopID;
 
@@ -97,7 +112,32 @@ namespace NekoVpk.ViewModels
             } 
         }
 
-        public string CreationTimeStr { get; set; }
+        public string CreationTimeStr { get; set; } = string.Empty;
+
+        public DateTime LastUpdate { get; set; }
+        
+        public string LastUpdateStr => LastUpdate > DateTime.MinValue ? LastUpdate.ToString("g") : "";
+
+        public long FileSizeRaw { get; set; }
+        
+        public string FileSize
+        {
+            get
+            {
+                if (FileSizeRaw <= 0) return "";
+                string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+                double len = FileSizeRaw;
+                int order = 0;
+                while (len >= 1024 && order < sizes.Length - 1)
+                {
+                    order++;
+                    len /= 1024;
+                }
+                return $"{len:0.##} {sizes[order]}";
+            }
+        }
+
+        public int Subscriptions { get; set; }
 
         public AddonAttribute(bool? enable, string fileName, AddonSource source, AddonInfo addonInfo, string? types = null)
         {
@@ -106,6 +146,15 @@ namespace NekoVpk.ViewModels
             Source = source;
             AddonInfo = addonInfo;
             _Type = types ?? string.Empty;
+        }
+
+        public void UpdateAuthorName(string? newName)
+        {
+            if (AddonInfo.Author != newName)
+            {
+                AddonInfo.Author = newName;
+                this.RaisePropertyChanged(nameof(Author));
+            }
         }
 
         public string GetAbsolutePath(string gameDir)

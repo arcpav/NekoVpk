@@ -20,6 +20,8 @@ class Program
     public static void Main(string[] args)
     {
 
+    System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+
 #if !DEBUG
         try
 #endif

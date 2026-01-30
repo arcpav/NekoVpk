@@ -10,11 +10,23 @@ using System.Diagnostics;
 using SevenZip;
 using System.Linq;
 using Avalonia.Threading;
+using MsBox.Avalonia;
+using MsBox.Avalonia.Dto;
+using MsBox.Avalonia.Enums;
+using System.ComponentModel;
+
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace NekoVpk.Views;
 
 public partial class MainView : UserControl
 {
+    private static readonly HttpClient _imageHttpClient = new HttpClient();
+    private CancellationTokenSource? _imageCts;
+    private static readonly Dictionary<string, Bitmap> _imageCache = new();
+
     public MainView()
     {
         InitializeComponent();
@@ -28,51 +40,167 @@ public partial class MainView : UserControl
 
     protected override void OnDataContextChanged(EventArgs e)
     {
-        ReloadAddonList();
+        if (DataContext is MainViewModel vm)
+        {
+            vm.PropertyChanged -= ViewModel_PropertyChanged;
+            vm.PropertyChanged += ViewModel_PropertyChanged;
+            
+            ReloadAddonList();
+        }
         base.OnDataContextChanged(e);
+    }
+
+    private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(MainViewModel.IsOnlineMode))
+        {
+            ResetDetailPanel();
+        }
+    }
+
+    private void ResetDetailPanel()
+    {
+        AddonList.SelectedItem = null;
+        AddonDetailPanel.IsVisible = false;
+        AddonImage.Source = null;
+        _imageCts?.Cancel();
+        CancelAssetTagChange();
     }
 
     private void DataGrid_CurrentCellChanged(object? sender, System.EventArgs e)
     {
         CancelAssetTagChange();
+        
+        _imageCts?.Cancel();
+
+        if (AddonList.SelectedItem == null)
+        {
+            AddonDetailPanel.IsVisible = false;
+            AddonImage.Source = null;
+            return;
+        }
+
         if (sender is DataGrid dg && dg.SelectedItem is AddonAttribute att)
         {
             AddonDetailPanel.IsVisible = true;
+            
+            if (att.Source == AddonSource.WorkShop)
+            {
+                AddonImage.Source = null;
+                
+                string localPath = att.GetAbsolutePath(NekoSettings.Default.GameDir);
+                if (!File.Exists(localPath))
+                {
+                    if (!string.IsNullOrEmpty(att.PreviewUrl))
+                    {
+                        LoadOnlineImage(att.PreviewUrl);
+                    }
+                    return;
+                }
+            }
+
             Package? pak = null;
             try
             {
+
                 pak = att.LoadPackage(NekoSettings.Default.GameDir);
             }
-            catch (FileNotFoundException ex)
+            catch (Exception ex)
             {
-                AddonImage.Source = null;
-                return;
+                Debug.WriteLine($"读取 VPK 失败: {ex.Message}");
+                pak = null;
             }
 
-            if (pak == null) return;
+            if (pak == null) 
+            {
+                if (att.Source == AddonSource.WorkShop && !string.IsNullOrEmpty(att.PreviewUrl))
+                {
+                    LoadOnlineImage(att.PreviewUrl);
+                }
+                else
+                {
+                    AddonImage.Source = null;
+                }
+                return;
+            }
 
             var entry = pak.FindEntry("addonimage.jpg");
             if (entry != null)
             {
-                pak.ReadEntry(entry, out byte[] output);
-                AddonImage.Source = Bitmap.DecodeToHeight(new System.IO.MemoryStream(output), 128);
+                try 
+                {
+                    pak.ReadEntry(entry, out byte[] output);
+                    AddonImage.Source = Bitmap.DecodeToHeight(new System.IO.MemoryStream(output), 128);
+                }
+                catch
+                {
+                    AddonImage.Source = null;
+                }
             }
             else
             {
                 FileInfo jpg = new(Path.ChangeExtension(att.GetAbsolutePath(NekoSettings.Default.GameDir), "jpg"));
                 if (jpg.Exists)
                 {
-                    var fileStream = jpg.OpenRead();
-                    AddonImage.Source = Bitmap.DecodeToHeight(fileStream, 128);
-                    fileStream.Close();
+                    try
+                    {
+                        using var fileStream = jpg.OpenRead();
+                        AddonImage.Source = Bitmap.DecodeToHeight(fileStream, 128);
+                    }
+                    catch
+                    {
+                         AddonImage.Source = null;
+                    }
                 }
                 else
                 {
-                    AddonImage.Source = null;
+                    if (att.Source == AddonSource.WorkShop && !string.IsNullOrEmpty(att.PreviewUrl))
+                    {
+                         LoadOnlineImage(att.PreviewUrl);
+                    }
+                    else
+                    {
+                         AddonImage.Source = null;
+                    }
                 }
             }
             pak.Dispose();
-            
+        }
+    }
+
+    private async void LoadOnlineImage(string url)
+    {
+        if (_imageCache.TryGetValue(url, out var cachedBitmap))
+        {
+            AddonImage.Source = cachedBitmap;
+            return;
+        }
+
+        _imageCts = new CancellationTokenSource();
+        var token = _imageCts.Token;
+
+        try
+        {
+            await Task.Delay(100, token);
+            var imageBytes = await _imageHttpClient.GetByteArrayAsync(url, token);
+            using var stream = new MemoryStream(imageBytes);
+            var bitmap = Bitmap.DecodeToHeight(stream, 256);
+
+            if (_imageCache.Count > 100) _imageCache.Clear();
+            _imageCache[url] = bitmap;
+
+            if (!token.IsCancellationRequested)
+            {
+                AddonImage.Source = bitmap;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // 正常取消，忽略
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"加载预览图失败: {ex.Message}");
         }
     }
 
@@ -94,10 +222,10 @@ public partial class MainView : UserControl
 
     private void DataGrid_BeginningEdit(object? sender, Avalonia.Controls.DataGridBeginningEditEventArgs e)
     {
-        if (e.Row.DataContext is AddonAttribute { Source: AddonSource.WorkShop })
-        {
-            e.Cancel = true;
-        }
+        // if (e.Row.DataContext is AddonAttribute { Source: AddonSource.WorkShop })
+        // {
+        //     e.Cancel = true;
+        // }
     }
 
     private void DataGrid_CellEditEnded(object? sender, Avalonia.Controls.DataGridCellEditEndedEventArgs e)
@@ -109,10 +237,15 @@ public partial class MainView : UserControl
             bool modified = false;
             foreach (var v in AddonAttribute.dirty)
             {
-                if (v.Enable != null)
+                if (v.Enable.HasValue)
                 {
                     modified = true;
-                    addonList.SetEnable(v.FileName, (bool)v.Enable);
+                    string keyForAddonList = v.FileName;
+                    if (v.Source == AddonSource.WorkShop)
+                    {
+                        keyForAddonList = "workshop\\" + v.FileName;
+                    }
+                    addonList.SetEnable(keyForAddonList, (bool)v.Enable);
                 }
             }
 
@@ -127,7 +260,28 @@ public partial class MainView : UserControl
     {
         if (AddonList.SelectedItem is AddonAttribute att)
         {
-            FileInfo fileInfo = new(att.GetAbsolutePath(NekoSettings.Default.GameDir));
+            string gameDir = NekoSettings.Default.GameDir;
+            string primaryPath = att.GetAbsolutePath(gameDir);
+            FileInfo fileInfo = new(primaryPath);
+            
+            if (!fileInfo.Exists && att.Source == AddonSource.WorkShop)
+            {
+                string altPath = Path.Combine(gameDir, "addons", att.FileName);
+                FileInfo altFileInfo = new(altPath);
+                if (altFileInfo.Exists)
+                {
+                    fileInfo = altFileInfo;
+                }
+                else
+                {
+                    return;
+                }
+            }
+            else if (!fileInfo.Exists) 
+            {
+                return;
+            }
+
             Process.Start(new ProcessStartInfo() {
                 FileName = "explorer.exe",
                 Arguments = $"/select, \"{fileInfo.FullName}\"",
@@ -137,13 +291,102 @@ public partial class MainView : UserControl
         }
     }
 
+    private void AddonList_Menu_OpenPage(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (AddonList.SelectedItem is AddonAttribute att && !string.IsNullOrEmpty(att.Url))
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = att.Url,
+                    UseShellExecute = true
+                });
+            }
+            catch { }
+        }
+    }
+
+    private async void AddonList_Menu_Download(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel vm && AddonList.SelectedItems != null && AddonList.SelectedItems.Count > 0)
+        {
+            var selectedItems = AddonList.SelectedItems.Cast<AddonAttribute>().ToList();
+            bool anySuccess = false;
+
+            foreach (var att in selectedItems)
+            {
+                if (await vm.DownloadAddonAsync(att))
+                {
+                    anySuccess = true;
+                }
+            }
+
+            if (anySuccess)
+            {
+                if (NekoSettings.Default.ClearSearchAfterDownload)
+                {
+                    vm.SearchKeywords = string.Empty;
+                }
+                vm.IsOnlineMode = false;
+            }
+        }
+    }
+
+    private async void AddonList_Menu_Delete(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel vm && AddonList.SelectedItems != null && AddonList.SelectedItems.Count > 0)
+        {
+            var selectedItems = AddonList.SelectedItems.Cast<AddonAttribute>().ToList();
+            int count = selectedItems.Count;
+            string msg = count == 1 
+                ? $"确定要删除 \"{selectedItems[0].Title}\"({selectedItems[0].FileName})吗?"
+                : $"确定要删除选中的 {count} 个模组吗?";
+
+            var result = await ShowMessageBoxAsync("删除确认", msg + "\n此操作无法撤销", ButtonEnum.YesNo, MsBox.Avalonia.Enums.Icon.Warning);
+
+            if (result == ButtonResult.Yes)
+            {
+                foreach (var att in selectedItems)
+                {
+                    try
+                    {
+                        vm.DeleteAddon(att);
+                    }
+                    catch (Exception ex)
+                    {
+                        await ShowMessageBoxAsync("删除失败", $"无法删除 {att.FileName}:\n{ex.Message}", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     private void AddonList_DoubleTapped(object? sender, Avalonia.Input.TappedEventArgs e)
     {
-        return;
         foreach (var item in AddonList.SelectedItems)
         {
             if (item is AddonAttribute att)
             {
+                if (att.Source == AddonSource.WorkShop)
+                {
+                    string localPath = att.GetAbsolutePath(NekoSettings.Default.GameDir);
+                    if (!File.Exists(localPath))
+                    {
+                        if (!string.IsNullOrEmpty(att.WorkShopID))
+                        {
+                            var url = $"https://steamcommunity.com/sharedfiles/filedetails/?id={att.WorkShopID}";
+                            Process.Start(new ProcessStartInfo
+                            {
+                                FileName = url,
+                                UseShellExecute = true
+                            });
+                        }
+                        return;
+                    }
+                }
+
                 Process.Start(new ProcessStartInfo()
                 {
                     FileName = att.GetAbsolutePath(NekoSettings.Default.GameDir),
@@ -151,7 +394,29 @@ public partial class MainView : UserControl
                     Verb = "open",
                 });
             }
+        }
+    }
 
+    private async void Button_Download_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel vm && AddonList.SelectedItem is AddonAttribute att)
+        {
+            if (await vm.DownloadAddonAsync(att))
+            {
+                if (NekoSettings.Default.ClearSearchAfterDownload)
+                {
+                    vm.SearchKeywords = string.Empty;
+                }
+                vm.IsOnlineMode = false;
+            }
+        }
+    }
+
+    private void Button_CancelDownload_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel vm)
+        {
+            vm.CancelDownload();
         }
     }
 
@@ -164,10 +429,6 @@ public partial class MainView : UserControl
                 label.Classes.Add(tag.Color);
             }
         }
-        //"Red", "Pink", "Purple", "Violet", "Indigo",
-        //"Blue", "LightBlue", "Cyan", "Teal", "Green",
-        //"LightGreen", "Lime", "Yellow", "Amber", "Orange",
-        //"Grey"
     }
 
 
@@ -177,23 +438,9 @@ public partial class MainView : UserControl
     {
         if (sender is Label label && label.DataContext is AssetTag tag)
         {
-            switch(tag.Name)
-            {
-                case "Bill":
-                case "Coach":
-                case "Ellis":
-                case "Francis":
-                case "Louis":
-                case "Nick":
-                case "Rochelle":
-                case "Zoey":
-                case "BillDeathPose":
-                case "FrancisLight":
-                case "ZoeyLight":
-                    break;
-                default:
-                    return;
-            }
+            if (tag.Type == null || !tag.Type.Contains("Survivor"))
+                return;
+
             if (!ModifiedAssetTags.ContainsKey(tag))
             {
                 ModifiedAssetTags[tag] = tag.Enable;
@@ -205,10 +452,8 @@ public partial class MainView : UserControl
 
     private async void Button_AssetTagModifiedPanel_Apply(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-
         if (AddonList.SelectedItem is AddonAttribute att && DataContext is MainViewModel vm)
         {
-
             Package? pkg = null;
             SevenZipExtractor? extractor = null;
             SevenZipCompressor? compressor = null;
@@ -237,11 +482,11 @@ public partial class MainView : UserControl
                         break;
                     }
                 }
-               
+            
                 if (!tmpFile.Exists) tmpFile.Create().Close();
                 tmpFile.Attributes |= FileAttributes.Temporary;
 
-                Dictionary<int, string> disableZipFiles = [];
+                Dictionary<int, string?> disableZipFiles = [];
                 List<PackageEntry> disableEntries = [];
                 List<string> vpkFiles = [];
                 Dictionary<string, string> zipFiles = [];
@@ -268,14 +513,13 @@ public partial class MainView : UserControl
                         foreach (var tag in ModifiedAssetTags.Keys)
                         {
                             if (!tag.Enable && tag.Proporty.IsMatch(f.GetFullPath()))
-                            {
+            {
                                 disableEntries.Add(f);
                                 break;
                             }
                         }
                     }
                 }
-
 
                 compressor = new SevenZipCompressor()
                 {
@@ -342,7 +586,6 @@ public partial class MainView : UserControl
                 tmpFile.CreationTime = srcPakFile.CreationTime;
                 tmpFile.MoveTo(originFilePath, true);
 
-
                 // update UI
                 ModifiedAssetTags.Clear();
                 AssetTagModifiedPanel.IsVisible = false;
@@ -351,7 +594,8 @@ public partial class MainView : UserControl
             {
                 CancelAssetTagChange();
                 Debug.WriteLine(ex);
-                throw ex;
+
+                await ShowMessageBoxAsync("应用失败", $"{ex.Message}\n\n{att.FileName} 被其他程序使用中 关闭游戏或可能的程序后重试", ButtonEnum.Ok, MsBox.Avalonia.Enums.Icon.Error);
             }
             finally
             {
@@ -382,26 +626,46 @@ public partial class MainView : UserControl
     {
         if (DataContext is MainViewModel vm)
         {
-            vm.Addons.Refresh();
+            if (!vm.IsOnlineMode)
+            {
+                vm.Addons.Refresh();
+            }
         }
     }
 
     private void Button_AddonSearch_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        SubmitAddonSearch();
+        if (DataContext is MainViewModel vm && vm.IsOnlineMode)
+        {
+            _ = vm.SearchWorkshopAsync();
+        }
+        else
+        {
+            SubmitAddonSearch();
+        }
     }
 
     private void TextBox_AddonSearch_KeyUp(object? sender, Avalonia.Input.KeyEventArgs e)
     {
         if (e.Key == Avalonia.Input.Key.Enter)
         {
-            SubmitAddonSearch();
+            if (DataContext is MainViewModel vm && vm.IsOnlineMode)
+            {
+                _ = vm.SearchWorkshopAsync();
+            }
+            else
+            {
+                SubmitAddonSearch();
+            }
         }
     }
 
     private void TextBox_AddonSearch_TextChanged(object? sender, Avalonia.Controls.TextChangedEventArgs e)
     {
-        SubmitAddonSearch();
+        if (DataContext is MainViewModel vm && !vm.IsOnlineMode)
+        {
+            SubmitAddonSearch();
+        }
     }
 
     private void DataGrid_Sorting(object? sender, Avalonia.Controls.DataGridColumnEventArgs e)
@@ -419,7 +683,119 @@ public partial class MainView : UserControl
                 Background = window.Background,
             };
             await settingsWindow.ShowDialog(window);
+            
+            if (DataContext is MainViewModel vm)
+            {
+                vm.UpdateBackground();
+            }
         }
-        
+    }
+
+
+    private void SetAllEnabled(bool enabled)
+    {
+        if (DataContext is MainViewModel vm)
+        {
+            foreach (AddonAttribute item in vm.Addons)
+            {
+                item.Enable = enabled;
+            }
+            SaveDirtyChanges();
+        }
+    }
+
+    private void SaveDirtyChanges()
+    {
+        if (AddonAttribute.dirty.Count == 0) return;
+
+        AddonList addonList = new();
+        addonList.Load(NekoSettings.Default.GameDir);
+        bool modified = false;
+
+        foreach (var v in AddonAttribute.dirty)
+        {
+            if (v.Enable.HasValue)
+            {
+                modified = true;
+                string key = v.FileName;
+                if (v.Source == AddonSource.WorkShop)
+                {
+                    key = "workshop\\" + v.FileName;
+                }
+                addonList.SetEnable(key, (bool)v.Enable);
+            }
+        }
+
+        if (modified)
+        {
+            addonList.Save(NekoSettings.Default.GameDir);
+        }
+
+        AddonAttribute.dirty.Clear();
+    }
+
+    private void MenuItem_SelectAll_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        SetAllEnabled(true);
+    }
+    private void MenuItem_DeselectAll_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        SetAllEnabled(false);
+    }
+    private void MenuItem_InvertSelection_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel vm)
+        {
+            foreach (AddonAttribute item in vm.Addons)
+            {
+                if (item.Enable.HasValue)
+                {
+                    item.Enable = !item.Enable.Value;
+                }
+                else
+                {
+                    item.Enable = true;
+                }
+            }
+            SaveDirtyChanges();
+        }
+    }
+
+    private async Task<ButtonResult> ShowMessageBoxAsync(string title, string message, ButtonEnum buttons, MsBox.Avalonia.Enums.Icon icon)
+    {
+        var box = MessageBoxManager.GetMessageBoxStandard(
+            new MessageBoxStandardParams
+            {
+                ContentTitle = title,
+                ContentMessage = message,
+                ButtonDefinitions = buttons,
+                Icon = icon,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner, 
+                CanResize = false,
+                ShowInCenter = true
+            });
+
+        if (this.VisualRoot is Window window)
+        {
+            return await box.ShowWindowDialogAsync(window);
+        }
+        else
+        {
+            return await box.ShowAsync();
+        }
+    }
+    
+    private void Button_ResetTags_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel vm)
+        {
+            foreach (var category in vm.WorkshopTagCategories)
+            {
+                foreach (var tag in category.Tags)
+                {
+                    tag.IsSelected = false;
+                }
+            }
+        }
     }
 }
